@@ -1,0 +1,402 @@
+#---------------------------------------------------------------#
+#Informatica Transformation Tool Menu
+#@Author Collin Preston
+#collin.preston@excellus.com
+#Excellus Blue Cross Blue Shield
+#2014/07/29
+#Ver. 1.0
+#Improves on old menu with arrow selection and improved colours
+#----------------------------------------------------------------#
+
+
+
+#!/bin/bash
+
+# Define current terminal dimension.
+N_COLS=`tput cols`
+N_LINES=`tput lines`
+
+# Need at least a 20-LINES X 50-COLUMNS terminal. Check it.
+if [ $N_COLS -lt 50 ] || [ $N_LINES -lt 20 ]; then
+   echo "`basename $0` needs a 50-cols X 20-lines terminal."
+   echo "Your terminal is ${N_COLS}-cols X ${N_LINES}-lines."
+   exit $E_RUNERR
+fi
+
+tput civis
+clear
+
+#disable normal echo to avoid contaminating key presses
+stty -echo
+
+#initalize the selected menu item which defaults as the first item
+CurSelected=0
+
+
+#  This function moves the cursor to line $1 column $2 and then prints $3.
+#  E.g.: "move_and_echo 5 10 linux" is equivalent to
+#+ "tput cup 4 9; echo linux", but with one command instead of two.
+#  Note: "tput cup" defines 0 0 the upper left angle of the terminal,
+#+ echo defines 1 1 the upper left angle of the terminal.
+#  function by Stefano Palmeri.
+move_and_echo() {
+          echo -ne "\E[${1};${2}H""$3" 
+}
+
+
+#These two functions test to make sure that if the down arrow is pressed
+#+ that the highlighted line does not move down one row if it is already at the bottom
+change_current_up()	{
+	if [ $CurSelected \> 0 ]; then
+		let "CurSelected=CurSelected-1"
+	fi
+}
+change_current_down()	{
+	if [ $CurSelected \< 6 ]; then
+		let "CurSelected=CurSelected+1"
+	fi
+}
+
+
+#This function is called when the enter key is detected
+#It processes the selection depending on what value CurSelected contains
+user_selection_made()	{
+	case "$CurSelected" in
+		0) 
+			stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			new_createUser.sh
+			exit;;
+		1)
+			stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			new_disableUser.sh
+			exit;;
+		2)
+			stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			new_removeUser.sh
+			exit;;
+		3)
+			stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			new_createFolder.sh
+			exit;;
+		4) 
+			stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			new_createUnixFoler.sh
+			exit;;
+		5) 
+			stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			DevUserOnly.ksh
+			exit;;
+		6) stty echo
+			echo -en "\E[?25h"
+			echo -en "\E[0m"
+			clear
+			exit;;
+	esac
+}
+
+
+#Change the background colour to blue and the foreground colour to white
+echo -ne '\E[37;44m'
+echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * "
+#echo out the stars on each side of the menu
+move_and_echo 1 0 "*"
+move_and_echo 2 0 "*"
+move_and_echo 2 80 "*"
+move_and_echo 3 0 "*"
+move_and_echo 3 80 "*"
+move_and_echo 4 0 "*"
+move_and_echo 4 80 "*"
+move_and_echo 5 0 "*"
+move_and_echo 5 80 "*"
+move_and_echo 6 0 "*"
+move_and_echo 6 80 "*"
+move_and_echo 7 0 "*"
+move_and_echo 7 80 "*"
+move_and_echo 8 0 "*"
+move_and_echo 8 80 "*"
+move_and_echo 9 0 "*"
+move_and_echo 9 80 "*"
+move_and_echo 10 0 "*"
+move_and_echo 10 80 "*"
+move_and_echo 11 0 "*"
+move_and_echo 11 80 "*"
+move_and_echo 12 0 "*"
+move_and_echo 12 80 "*"
+move_and_echo 13 0 "*"
+move_and_echo 13 80 "*"
+move_and_echo 14 0 "*"
+tput cup 13 1
+echo " * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * "
+	# Set foreground colour to white and background colour to red
+	echo -ne '\E[37;41m'
+	tput cup 1 1
+	echo "                    Informatica Administrator Script Menu                     "
+	tput cup 2 1
+	echo "------------------------------------------------------------------------------"
+	tput cup 3 1
+	echo -ne '\E[5;34;47m'
+	#change the foreground colour to blue and the background colour to white
+	#this colour change shows this item as selected
+	echo "*****************************Create New User**********************************"
+	tput cup 4 1
+	echo -ne '\E[37;41m'
+	#change the colour back to the non selected colour scheme
+	echo "******************************Disable User************************************"
+	tput cup 5 1
+	echo "*******************************Remove User************************************"
+	tput cup 6 1
+	echo "********************Create Informatica Project Folder*************************"
+	tput cup 7 1
+	echo "****************************Create Unix Folder********************************"
+	tput cup 8 1
+	echo "*********************Generate User Report Via Email***************************"
+	tput cup 9 1
+	echo "**********************************Exit****************************************"
+	tput cup 10 1
+	echo "------------------------------------------------------------------------------"
+	tput cup 11 1
+	echo "                                                                              "
+	tput cup 12 1
+	echo "                                                                              "
+	
+while true; do	
+	#initialize variable that contain the output of key pressed
+	uparrow=$'\x1b[A'
+	downarrow=$'\x1b[B'
+	insert=$''
+	
+	#read in the users key presses
+	read -s -n3 -p "" x
+	
+	#This case tests to see what key the user has pressed
+	#It uses the variables containing the output of each key
+	  case "$x" in
+	  $uparrow)
+			change_current_up
+		 ;;
+	  $downarrow)
+			change_current_down
+		 ;;
+		$insert)
+			user_selection_made
+	  esac
+	  #These if statements check to see what the value of CurSelected is
+	  #+ and changes the selected menu item accordingly 
+	  if [ $CurSelected = 0 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo -ne '\E[5;34;47m'
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo -ne '\E[37;41m'
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo "------------------------------------------------------------------------------"
+		fi
+		 if [ $CurSelected = 1 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo -ne '\E[5;34;47m'
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo -ne '\E[37;41m'
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo "------------------------------------------------------------------------------"
+		fi
+		 if [ $CurSelected = 2 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo -ne '\E[5;34;47m'
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo -ne '\E[37;41m'
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo "------------------------------------------------------------------------------"
+		fi
+		if [ $CurSelected = 3 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo -ne '\E[5;34;47m'
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo -ne '\E[37;41m'
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo "------------------------------------------------------------------------------"
+		fi
+		if [ $CurSelected = 4 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo -ne '\E[5;34;47m'
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo -ne '\E[37;41m'
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo "------------------------------------------------------------------------------"
+		fi
+		if [ $CurSelected = 5 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo -ne '\E[5;34;47m'
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo -ne '\E[37;41m'
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo "------------------------------------------------------------------------------"
+		fi
+		if [ $CurSelected = 6 ]; then
+			# Set foreground colour to blue and background colour to red
+			echo -ne '\E[37;41m'
+			# Need a string of 80 chars. See below.
+			tput cup 1 1
+			echo "                    Informatica Administrator Script Menu                     "
+			tput cup 2 1
+			echo "------------------------------------------------------------------------------"
+			tput cup 3 1
+			echo "*****************************Create New User**********************************"
+			tput cup 4 1
+			echo "******************************Disable User************************************"
+			tput cup 5 1
+			echo "*******************************Remove User************************************"
+			tput cup 6 1
+			echo "********************Create Informatica Project Folder*************************"
+			tput cup 7 1
+			echo "****************************Create Unix Folder********************************"
+			tput cup 8 1
+			echo "*********************Generate User Report Via Email***************************"
+			tput cup 9 1
+			echo -ne '\E[5;34;47m'
+			echo "**********************************Exit****************************************"
+			tput cup 10 1
+			echo -ne '\E[37;41m'
+			echo "------------------------------------------------------------------------------"
+		fi
+done
+
+#Enable echoing to the terminal again
+stty echo
+#Restore the default colour scheme to the terminal
+echo -en "\E[?25h"
+echo -en "\E[0m"
+#Return the cursor to the default position
+tput cup 19 0
+
+exit 0
